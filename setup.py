@@ -21,6 +21,7 @@ setup(
     long_description=long_description,  # for pypi description
     long_description_content_type='text/markdown',
     install_requires=[
-        'Appium-Python-Client~=2.11.1'
+        'Appium-Python-Client~=2.11.1',
+        'miraelogger~=0.0.2'
     ]
 )

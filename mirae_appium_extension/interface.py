@@ -6,11 +6,13 @@ import json
 import os
 
 import mirae_appium_extension.exception
-
 import appium.webdriver.appium_service
-from appium import webdriver
 
 import urllib3.exceptions
+
+from logging import DEBUG
+from appium import webdriver
+from miraelogger import Logger
 
 
 class Interface:
@@ -26,8 +28,10 @@ class Interface:
         self._configuration = None
         self._appium_service = None
         self._driver = None
+        self._logger = None
 
         self._init_configuration(configuration)
+        self._init_logger()
         self._connect()
 
     def _init_configuration(self, configuration):
@@ -44,6 +48,19 @@ class Interface:
         else:
             raise mirae_appium_extension.exception.AppiumExtensionConfigurationException("Configuration does not meet to initialize.")
 
+    def _init_logger(self):
+        """Initialize a logger.
+
+        :raise mirae_appium_extension.exception.AppiumExtensionConfigurationException: Configuration information not meet to initialize.
+        """
+        if self._configuration['save_log_option'] is True:
+            if os.path.exists(self._configuration['save_log_path']):
+                self._logger = Logger("mirae_appium_extension_logger", self._configuration['save_log_path'])
+            else:
+                raise mirae_appium_extension.exception.AppiumExtensionConfigurationException("Please check the 'save_log_path' value of configuration.")
+        else:
+            self._logger = Logger("mirae_appium_extension_logger", stream_log_level=DEBUG)
+
     def _connect(self):
         """Connect an appium server.
 
@@ -51,16 +68,20 @@ class Interface:
         """
         self._appium_service = appium.webdriver.appium_service.AppiumService()
         self._appium_service.start()
+        self._logger.debug("Appium service start successful.")
 
         try:
             self._driver = webdriver.Remote(self._configuration["appium_server"], self._configuration["capabilities"])
         except urllib3.exceptions.MaxRetryError:
-            raise mirae_appium_extension.exception.AppiumExtensionConnectionException(f"Could not connect the {self._configuration['capabilities']['deviceName']}.")
+            self._logger.exception(msg := f"Connect the {self._configuration['capabilities']['deviceName']} is failed.")
+            raise mirae_appium_extension.exception.AppiumExtensionConnectionException(msg)
+        self._logger.info(f"Connect the {self._configuration['capabilities']['deviceName']} is success.")
 
     def finalize(self) -> None:
         """Disconnect the appium and stop appium service."""
         self._driver.quit()
         self._appium_service.stop()
+        self._logger.info(f"Finalize the {self._configuration['capabilities']['deviceName']} is success.")
 
     @abc.abstractmethod
     def save_page(self) -> None:
@@ -73,33 +94,37 @@ class Interface:
         :param str xpath: Target element's xpath expression.
         :param float timeout: Timeout value.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
+        :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
         """
 
     @abc.abstractmethod
-    def double_touch_element(self, xpath, timeout) -> None:
+    def double_touch_element(self, xpath, timeout=1.0) -> None:
         """Double tap an element in current screen.
 
         :param str xpath: Target element's xpath expression.
-        :param float timeout: Timeout value.
+        :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
+        :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
         """
     @abc.abstractmethod
-    def long_press_element(self, xpath, timeout) -> None:
+    def long_press_element(self, xpath, timeout=1.0) -> None:
         """Long press an element in current screen.
 
         :param str xpath: Target element's xpath expression.
-        :param float timeout: Timeout value.
+        :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not long press element.
+        :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
         """
 
     @abc.abstractmethod
-    def enter_text(self, xpath, text, timeout) -> None:
+    def enter_text(self, xpath, text, timeout=1.0) -> None:
         """Input the text into target elements.
 
         :param str xpath: Target element xpath expression.
         :param str text: Target text.
-        :param float timeout: Timeout. (default=1.0)
+        :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not input the text.
+        :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
         """
 
     @abc.abstractmethod
