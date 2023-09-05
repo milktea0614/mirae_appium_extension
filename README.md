@@ -1,5 +1,18 @@
 # mirae_appium_extension
-Appium Extension library for me
+Appium Extension library for me.
+
+---
+
+## Requirements
+### SW
+- JDK
+- Android SDK
+- Node js
+- Appium
+
+### PyPI library
+- Appium-Python-Client~=2.11.1
+- miraelogger~=0.0.2
 
 ---
 
@@ -8,7 +21,8 @@ Appium Extension library for me
 You can set up the configuration using json file or dictionary type value.
 
 ### Mandatory key-value.
-- **appium_server**: Input appium server 'IP:Port' information.
+- **appium_server_address**: Input appium server address.
+- **appium_server_port**: Input appium server port.
 - **capabilities**: Input capabilities information.
     - Please refer to [Capabilities - Appium Documentation](https://appium.io/docs/en/2.1/guides/caps/)
 - **save_page**: Input the directory path to save page information.
@@ -18,7 +32,8 @@ You can set up the configuration using json file or dictionary type value.
 ### Example
 ```
 {
-    "appium_server": "http://localhost:4723",
+    "appium_server_address": "http://localhost",
+    "appium_server_port": 4723,
     "capabilities": {
         "platformName": "Android",
         "automationName": "uiautomator2",

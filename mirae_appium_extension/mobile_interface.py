@@ -7,11 +7,13 @@ import os
 
 import mirae_appium_extension.exception
 import appium.webdriver.appium_service
+import selenium.webdriver.common.utils
 
 import urllib3.exceptions
 
 from logging import DEBUG
 from appium import webdriver
+
 from miraelogger import Logger
 
 
@@ -70,12 +72,17 @@ class Interface:
         self._appium_service.start()
         self._logger.debug("Appium service start successful.")
 
+        if selenium.webdriver.common.utils.is_url_connectable(self._configuration["appium_server_port"]) is False:
+            self._logger.exception(msg := f"Could not use the {self._configuration['appium_server_port']} port.")
+            raise mirae_appium_extension.exception.AppiumExtensionConfigurationException(msg)
+
         try:
-            self._driver = webdriver.Remote(self._configuration["appium_server"], self._configuration["capabilities"])
+            _remote_address = f"{self._configuration['appium_server_address']}:{self._configuration['appium_server_port']}"
+            self._driver = webdriver.Remote(_remote_address, self._configuration["capabilities"])
+            self._logger.info(f"Connect the {self._configuration['capabilities']['deviceName']} is success.")
         except urllib3.exceptions.MaxRetryError:
             self._logger.exception(msg := f"Connect the {self._configuration['capabilities']['deviceName']} is failed.")
             raise mirae_appium_extension.exception.AppiumExtensionConnectionException(msg)
-        self._logger.info(f"Connect the {self._configuration['capabilities']['deviceName']} is success.")
 
     def finalize(self) -> None:
         """Disconnect the appium and stop appium service."""
@@ -117,6 +124,59 @@ class Interface:
         """
 
     @abc.abstractmethod
+    def scroll(self, direction="up", times=1, x_position=None) -> None:
+        """Scroll the screen.
+
+        :param str direction: Scroll direction string. (up, down)
+        :param int times: Scroll repeat times. (default=1)
+        :param int x_position: Standard X position. (default=None)
+        :raise mirae_appium_extension.exception.AppiumExtensionException: Could not scroll.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: User input the invalid value.
+        """
+
+    @abc.abstractmethod
+    def swipe(self, direction="right", times=1, y_position=None) -> None:
+        """Swipe the screen.
+
+        :param str direction: Swipe direction string. (right, left)
+        :param int times: Swipe repeat times. (default=1)
+        :param int y_position: Standard Y position. (default=None)
+        :raise mirae_appium_extension.exception.AppiumExtensionException: Could not swipe.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: User input the invalid value.
+        """
+
+    @abc.abstractmethod
+    def pinch_in(self, times=1) -> None:
+        """Pinch-In the current screen.
+
+        :param int times: Pinch times.
+        :raise mirae_appium_extension.exception.AppiumExtensionException: Could not Pinch-in.
+        """
+
+    @abc.abstractmethod
+    def pinch_out(self, times=1) -> None:
+        """Pinch-Out the current screen.
+
+        :param int times: Pinch times.
+        :raise mirae_appium_extension.exception.AppiumExtensionException: Could not Pinch-out.
+        """
+
+    @abc.abstractmethod
+    def rotate(self, degree=45, direction="clockwise", times=1) -> None:
+        """Rotate degree gesture.
+
+        :param int degree: Rotation degree value (range=5~180)(default=45).
+        :param str direction: Rotation direction (clockwise, counterclockwise).
+        :param int times: Rotate times.
+        :raise mirae_appium_extension.exception.AppiumExtensionException: Could not rotate.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: User input the invalid value.
+        """
+
+    @abc.abstractmethod
+    def back(self) -> None:
+        """Go back."""
+
+    @abc.abstractmethod
     def enter_text(self, xpath, text, timeout=1.0) -> None:
         """Input the text into target elements.
 
@@ -125,40 +185,6 @@ class Interface:
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not input the text.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
-        """
-
-    @abc.abstractmethod
-    def scroll(self, direction="up", times=1, x_position=None) -> None:
-        """Scroll the screen.
-
-        :param str direction: Scroll direction string.
-        :param int times: Scroll repeat times. (default=1)
-        :param int x_position: Standard X position. (default=None)
-        """
-
-    @abc.abstractmethod
-    def swipe(self, direction="right", times=1, y_position=None) -> None:
-        """Swipe the screen.
-
-        :param str direction: Swipe direction string.
-        :param int times: Swipe repeat times. (default=1)
-        :param int y_position: Standard Y position. (default=None)
-        """
-
-    @abc.abstractmethod
-    def zoom_in(self, direction="vertical", times=1) -> None:
-        """Zoom-in the current screen.
-
-        :param str direction: Zoom-in direction. (vertical, horizontal).
-        :param int times: Zoom-in times.
-        """
-
-    @abc.abstractmethod
-    def zoom_out(self, direction="vertical", times=1) -> None:
-        """Zoom-out the current screen.
-
-        :param str direction: Zoom-out direction. (vertical, horizontal).
-        :param int times: Zoom-out times.
         """
 
     @abc.abstractmethod
@@ -171,3 +197,18 @@ class Interface:
         :rtype: bool.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not click element.
         """
+
+    @property
+    def driver(self):
+        """Return self._driver."""
+        return self._driver
+
+    @property
+    def configuration(self):
+        """Return self._configuration."""
+        return self._configuration
+
+    @property
+    def appium_service(self):
+        """Return self._appium_service."""
+        return self._appium_service

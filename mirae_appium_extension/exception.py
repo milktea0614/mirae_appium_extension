@@ -17,3 +17,6 @@ class AppiumExtensionConnectionException(Exception):
 class AppiumExtensionConfigurationException(Exception):
     """Raised if a configuration exception occurs."""
 
+
+class AppiumExtensionValueException(Exception):
+    """Raised if a value exception occurs."""
