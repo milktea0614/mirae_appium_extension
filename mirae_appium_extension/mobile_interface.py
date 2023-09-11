@@ -12,6 +12,7 @@ import selenium.webdriver.common.utils
 import urllib3.exceptions
 
 from logging import DEBUG
+from typing import Union
 from appium import webdriver
 
 from miraelogger import Logger
@@ -95,32 +96,35 @@ class Interface:
         """Save the screenshot and xml file."""
 
     @abc.abstractmethod
-    def touch_element(self, xpath, timeout) -> None:
+    def touch(self, xpath: Union[str, dict], timeout) -> None:
         """Touch an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Timeout value.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
 
     @abc.abstractmethod
-    def double_touch_element(self, xpath, timeout=1.0) -> None:
+    def double_touch(self, xpath: Union[str, dict], timeout=1.0) -> None:
         """Double tap an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
     @abc.abstractmethod
-    def long_press_element(self, xpath, timeout=1.0) -> None:
+    def long_press(self, xpath: Union[str, dict], timeout=1.0) -> None:
         """Long press an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not long press element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
 
     @abc.abstractmethod

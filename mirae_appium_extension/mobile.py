@@ -2,7 +2,8 @@
 import datetime
 import math
 import os.path
-import time
+from typing import Union
+
 
 import mirae_appium_extension.mobile_interface
 import selenium.common.exceptions
@@ -38,72 +39,107 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
         self._driver.save_screenshot(_screenshot_path)
         self._logger.info(f"Current screen is saved as the '{_screenshot_path}'")
 
-    def touch_element(self, xpath, timeout=1.0) -> None:
+    def touch(self, xpath: Union[str, dict], timeout=1.0) -> None:
         """Touch an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
-        self._driver.implicitly_wait(timeout)
-        try:
-            _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
-            TouchAction(self._driver).tap(_target).perform()
-            self._logger.debug(f"Touch the '{xpath}' is success.")
-        except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
-            self.save_page()
-            self._logger.exception(msg := f"Touch the '{xpath}' is failed")
-            raise mirae_appium_extension.exception.AppiumExtensionException(msg)
-        except TimeoutError:
-            self.save_page()
-            self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
-            raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        if isinstance(xpath, str):
+            self._driver.implicitly_wait(timeout)
+            try:
+                _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
+                TouchAction(self._driver).tap(_target).perform()
+                self._logger.debug(f"Touch the '{xpath}' is success.")
+            except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
+                self.save_page()
+                self._logger.exception(msg := f"Touch the '{xpath}' is failed")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+            except TimeoutError:
+                self.save_page()
+                self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
+                raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        elif isinstance(xpath, dict):
+            try:
+                TouchAction(self._driver).tap(x=xpath['x'], y=xpath['y']).perform()
+                self._logger.debug(f"Touch the {xpath} is success.")
+            except Exception:
+                self._logger.exception(msg := f"Touch the {xpath} is failed.")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+        else:
+            self._logger.exception(msg := "Please check xpath parameter type is string or dict.")
+            raise mirae_appium_extension.exception.AppiumExtensionValueException(msg)
 
-    def double_touch_element(self, xpath, timeout=1.0) -> None:
+    def double_touch(self, xpath: Union[str, dict], timeout=1.0) -> None:
         """Double tap an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not touch element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
-        self._driver.implicitly_wait(timeout)
-        try:
-            _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
-            TouchAction(self._driver).tap(_target).perform()
-            TouchAction(self._driver).tap(_target).perform()
-            self._logger.debug(f"Double-touch the '{xpath}' is success.")
-        except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
-            self.save_page()
-            self._logger.exception(msg := f"Double-touch the '{xpath}' is failed")
-            raise mirae_appium_extension.exception.AppiumExtensionException(msg)
-        except TimeoutError:
-            self.save_page()
-            self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
-            raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        if isinstance(xpath, str):
+            self._driver.implicitly_wait(timeout)
+            try:
+                _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
+                TouchAction(self._driver).tap(_target, count=2).perform()
+                self._logger.debug(f"Double-touch the '{xpath}' is success.")
+            except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
+                self.save_page()
+                self._logger.exception(msg := f"Double-touch the '{xpath}' is failed")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+            except TimeoutError:
+                self.save_page()
+                self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
+                raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        elif isinstance(xpath, dict):
+            try:
+                TouchAction(self._driver).tap(x=xpath['x'], y=xpath['y'], count=2).perform()
+                self._logger.debug(f"Double-touch the '{xpath}' is success.")
+            except Exception:
+                self._logger.exception(msg := f"Double-touch the {xpath} is failed.")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+        else:
+            self._logger.exception(msg := "Please check xpath parameter type is string or dict.")
+            raise mirae_appium_extension.exception.AppiumExtensionValueException(msg)
 
-    def long_press_element(self, xpath, timeout=1.0) -> None:
+    def long_press(self, xpath: Union[str, dict], timeout=1.0) -> None:
         """Long press an element in current screen.
 
-        :param str xpath: Target element's xpath expression.
+        :param Union[str, dict] xpath: Target element's xpath expression or Target position dictionary {"x": x, "y": y}.
         :param float timeout: Waiting the timeout value to find element.
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not long press element.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
+        :raise mirae_appium_extension.exception.AppiumExtensionValueException: Parameter value is wrong.
         """
-        self._driver.implicitly_wait(timeout)
-        try:
-            _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
-            TouchAction(self._driver).long_press(_target).release().perform()
-            self._logger.debug(f"Long-press the '{xpath}' is success.")
-        except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
-            self.save_page()
-            self._logger.exception(msg := f"Long-press the '{xpath}' is failed")
-            raise mirae_appium_extension.exception.AppiumExtensionException(msg)
-        except TimeoutError:
-            self.save_page()
-            self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
-            raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        if isinstance(xpath, str):
+            self._driver.implicitly_wait(timeout)
+            try:
+                _target = self._driver.find_element(by=AppiumBy.XPATH, value=xpath)
+                TouchAction(self._driver).long_press(_target).release().perform()
+                self._logger.debug(f"Long-press the '{xpath}' is success.")
+            except (selenium.common.exceptions.NoSuchElementException, RuntimeError):
+                self.save_page()
+                self._logger.exception(msg := f"Long-press the '{xpath}' is failed")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+            except TimeoutError:
+                self.save_page()
+                self._logger.exception(msg := f"Could not find the '{xpath}' within {timeout} sec.")
+                raise mirae_appium_extension.exception.AppiumExtensionTimeoutException(msg)
+        elif isinstance(xpath, dict):
+            try:
+                TouchAction(self._driver).long_press(x=xpath['x'], y=xpath['y']).release().perform()
+                self._logger.debug(f"Long-press the '{xpath}' is success.")
+            except Exception:
+                self._logger.exception(msg := f"Long-press the {xpath} is failed.")
+                raise mirae_appium_extension.exception.AppiumExtensionException(msg)
+        else:
+            self._logger.exception(msg := "Please check xpath parameter type is string or dict.")
+            raise mirae_appium_extension.exception.AppiumExtensionValueException(msg)
 
     def scroll(self, direction="up", times=1, x_position=None) -> None:
         """Scroll the screen.
@@ -159,9 +195,9 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
 
         try:
             for _ in range(times):
-                if direction.lower() == "right":
+                if direction.lower() == "left":
                     TouchAction(self._driver).press(x=int(_width / 2), y=y_position).wait(100).move_to(x=int(_width / 4), y=y_position).release().perform()
-                elif direction.lower() == "left":
+                elif direction.lower() == "right":
                     TouchAction(self._driver).press(x=int(_width / 2), y=y_position).wait(100).move_to(x=int(_width / 4 * 3), y=y_position).release().perform()
 
             self._logger.debug(f"Swipe to {direction} is finish.")
@@ -179,18 +215,21 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
         standard_x = int(_window_size['width'] / 2)
         standard_y = int(_window_size['height'] / 2)
 
-        _x1_start = int(standard_x + (250 * math.cos(math.radians(45))))
-        _y1_start = int(standard_y + (250 * math.sin(math.radians(45))))
-        _x1_end = int(standard_x + (50 * math.cos(math.radians(45))))
-        _y1_end = int(standard_y + (50 * math.sin(math.radians(45))))
+        _max_distance = int(math.sqrt(math.pow(standard_x, 2) + math.pow(standard_y, 2)) / 2)
+        _min_distance = int(math.sqrt(math.pow(standard_x, 2) + math.pow(standard_y, 2)) / 5)
+
+        _x1_start = int(standard_x + (_max_distance * math.cos(math.radians(45))))
+        _y1_start = int(standard_y + (_max_distance * math.sin(math.radians(45))))
+        _x1_end = int(standard_x + (_min_distance * math.cos(math.radians(45))))
+        _y1_end = int(standard_y + (_min_distance * math.sin(math.radians(45))))
 
         _finger1 = TouchAction(self._driver)
         _finger1.press(x=_x1_start, y=_y1_start).wait(50).move_to(x=_x1_end, y=_y1_end).release()
 
-        _x2_start = int(standard_x + (250 * math.cos(math.radians(225))))
-        _y2_start = int(standard_y + (250 * math.sin(math.radians(225))))
-        _x2_end = int(standard_x + (50 * math.cos(math.radians(225))))
-        _y2_end = int(standard_y + (50 * math.sin(math.radians(225))))
+        _x2_start = int(standard_x + (_max_distance * math.cos(math.radians(225))))
+        _y2_start = int(standard_y + (_max_distance * math.sin(math.radians(225))))
+        _x2_end = int(standard_x + (_min_distance * math.cos(math.radians(225))))
+        _y2_end = int(standard_y + (_min_distance * math.sin(math.radians(225))))
 
         _finger2 = TouchAction(self._driver)
         _finger2.press(x=_x2_start, y=_y2_start).wait(50).move_to(x=_x2_end, y=_y2_end).release()
@@ -215,18 +254,21 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
         standard_x = int(_window_size['width'] / 2)
         standard_y = int(_window_size['height'] / 2)
 
-        _x1_start = int(standard_x + (50 * math.cos(math.radians(45))))
-        _y1_start = int(standard_y + (50 * math.sin(math.radians(45))))
-        _x1_end = int(standard_x + (250 * math.cos(math.radians(45))))
-        _y1_end = int(standard_y + (250 * math.sin(math.radians(45))))
+        _max_distance = int(math.sqrt(math.pow(standard_x, 2) + math.pow(standard_y, 2)) / 2)
+        _min_distance = int(math.sqrt(math.pow(standard_x, 2) + math.pow(standard_y, 2)) / 5)
+
+        _x1_start = int(standard_x + (_min_distance * math.cos(math.radians(45))))
+        _y1_start = int(standard_y + (_min_distance * math.sin(math.radians(45))))
+        _x1_end = int(standard_x + (_max_distance * math.cos(math.radians(45))))
+        _y1_end = int(standard_y + (_max_distance * math.sin(math.radians(45))))
 
         _finger1 = TouchAction(self._driver)
         _finger1.press(x=_x1_start, y=_y1_start).wait(50).move_to(x=_x1_end, y=_y1_end).release()
 
-        _x2_start = int(standard_x + (50 * math.cos(math.radians(225))))
-        _y2_start = int(standard_y + (50 * math.sin(math.radians(225))))
-        _x2_end = int(standard_x + (250 * math.cos(math.radians(225))))
-        _y2_end = int(standard_y + (250 * math.sin(math.radians(225))))
+        _x2_start = int(standard_x + (_min_distance * math.cos(math.radians(225))))
+        _y2_start = int(standard_y + (_min_distance * math.sin(math.radians(225))))
+        _x2_end = int(standard_x + (_max_distance * math.cos(math.radians(225))))
+        _y2_end = int(standard_y + (_max_distance * math.sin(math.radians(225))))
 
         _finger2 = TouchAction(self._driver)
         _finger2.press(x=_x2_start, y=_y2_start).wait(50).move_to(x=_x2_end, y=_y2_end).release()
@@ -264,17 +306,19 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
         standard_x = int(_window_size['width'] / 2)
         standard_y = int(_window_size['height'] / 2)
 
+        _distance = (standard_x / 4 * 3) if (standard_x / 4 * 3) < (standard_y / 4 * 3) else (standard_y / 4 * 3)
+
         # create move position
         _x_list = []
         _y_list = []
         _move_times = int(degree / 5) + 1
         for i in range(_move_times):
-            if direction == "counterclockwise":
-                _x_list.append(int(standard_x + (200 * math.cos(math.radians(5 * i + 45)))))
-                _y_list.append(int(standard_y + (200 * math.sin(math.radians(5 * i + 45)))))
-            elif direction == "clockwise":
-                _x_list.append(int(standard_x - (200 * math.cos(math.radians(225 - 5 * i)))))
-                _y_list.append(int(standard_y - (200 * math.sin(math.radians(225 - 5 * i)))))
+            if direction == "clockwise":
+                _x_list.append(int(standard_x + (_distance * math.cos(math.radians(5 * i + 45)))))
+                _y_list.append(int(standard_y + (_distance * math.sin(math.radians(5 * i + 45)))))
+            elif direction == "counterclockwise":
+                _x_list.append(int(standard_x - (_distance * math.cos(math.radians(225 - 5 * i)))))
+                _y_list.append(int(standard_y - (_distance * math.sin(math.radians(225 - 5 * i)))))
 
         # Init TouchActions
         _finger1 = TouchAction(self._driver)
@@ -309,6 +353,8 @@ class Android(mirae_appium_extension.mobile_interface.Interface):
         :raise mirae_appium_extension.exception.AppiumExtensionException: Could not input the text.
         :raise mirae_appium_extension.exception.AppiumExtensionTimeoutException: Could not find element within timeout.
         """
+        self._driver.implicitly_wait(timeout)
+        # TODO
         pass
 
     def go_to_screen(self, click_xpath, target_screen_xpath) -> bool:
